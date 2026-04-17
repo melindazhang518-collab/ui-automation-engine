@@ -14,7 +14,13 @@ export function loadTestConfig(configPath = 'test.config.json'): TestConfig {
     throw new Error(`Config file not found: ${fullPath}\nPlease copy test.config.example.json to test.config.json and fill in the values.`);
   }
 
-  const raw = JSON.parse(fs.readFileSync(fullPath, 'utf-8')) as Partial<TestConfig>;
+  let raw: Partial<TestConfig>;
+  try {
+    raw = JSON.parse(fs.readFileSync(fullPath, 'utf-8')) as Partial<TestConfig>;
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Unknown JSON parse error';
+    throw new Error(`Invalid JSON in ${fullPath}: ${message}`);
+  }
   if (!raw.baseUrl) {
     throw new Error('test.config.json: missing required field "baseUrl"');
   }

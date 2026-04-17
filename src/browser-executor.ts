@@ -81,11 +81,34 @@ export class BrowserExecutor {
         console.log(`  ✓ Assert [${assertion.type}] ${assertion.target} = ${assertion.expected}`);
         if (assertion.type === 'url') {
           const currentUrl = page.url();
-          if (!currentUrl.includes(assertion.expected)) {
-            throw new Error(`URL assertion failed: expected "${assertion.expected}" in "${currentUrl}"`);
+          const expected = assertion.expected.trim();
+          let matched = false;
+
+          if (/^https?:\/\//i.test(expected)) {
+            const currentParsed = new URL(currentUrl);
+            const expectedParsed = new URL(expected);
+            matched =
+              currentParsed.origin === expectedParsed.origin &&
+              currentParsed.pathname.startsWith(expectedParsed.pathname) &&
+              (!expectedParsed.search || currentParsed.search === expectedParsed.search);
+          } else if (expected.startsWith('/')) {
+            const currentParsed = new URL(currentUrl);
+            matched = currentParsed.pathname.startsWith(expected);
+          } else {
+            const currentParsed = new URL(currentUrl);
+            matched = currentParsed.pathname.includes(expected);
+          }
+
+          if (!matched) {
+            throw new Error(`URL assertion failed: expected "${expected}" but got "${currentUrl}"`);
           }
         } else if (assertion.type === 'visible' && assertion.target) {
-          await page.waitForSelector(assertion.target, { state: 'visible' });
+          try {
+            await page.waitForSelector(assertion.target, { state: 'visible' });
+          } catch (error) {
+            const reason = error instanceof Error ? error.message : String(error);
+            throw new Error(`Visible assertion failed: selector "${assertion.target}" is not visible. ${reason}`);
+          }
         } else if (assertion.type === 'contains' && assertion.target) {
           const text = await page.textContent(assertion.target);
           if (!text?.includes(assertion.expected)) {
