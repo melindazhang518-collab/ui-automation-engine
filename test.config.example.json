@@ -1,0 +1,6 @@
+{
+  "baseUrl": "https://your-app.example.com",
+  "storageStatePath": ".session/state.json",
+  "headless": false,
+  "timeout": 30000
+}
