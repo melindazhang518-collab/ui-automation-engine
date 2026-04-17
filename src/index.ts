@@ -1,4 +1,5 @@
 import { UIAutomationEngine } from './engine';
+import { ExecutionResult } from './types';
 
 async function main() {
   const args = process.argv.slice(2);
@@ -24,10 +25,10 @@ async function main() {
     const results = await engine.runBatch(args[1]);
     
     console.log('\n\n📊 ========== 测试总结 ==========');
-    const passed = results.filter(r => r.success).length;
+    const passed = results.filter((r: ExecutionResult) => r.success).length;
     const total = results.length;
-    const totalDuration = results.reduce((sum, r) => sum + r.duration, 0);
-    const cacheHits = results.filter(r => r.cachedHit).length;
+    const totalDuration = results.reduce((sum: number, r: ExecutionResult) => sum + r.duration, 0);
+    const cacheHits = results.filter((r: ExecutionResult) => r.cachedHit).length;
 
     console.log(`✅ 通过: ${passed}/${total}`);
     console.log(`💾 缓存命中: ${cacheHits}/${total}`);
