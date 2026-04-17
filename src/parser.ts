@@ -25,7 +25,8 @@ export class MarkdownParser {
   }
 
   private extractSection(markdown: string, sectionName: string): string[] {
-    const regex = new RegExp(`##\\s+${sectionName}\\s*\\n([\\s\\S]*?)(?=\\n##|$)`, 'i');
+    const escapedSectionName = sectionName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const regex = new RegExp(`##\\s+${escapedSectionName}\\s*\\n([\\s\\S]*?)(?=\\n##|$)`, 'i');
     const match = markdown.match(regex);
     if (!match) return [];
     return match[1]
