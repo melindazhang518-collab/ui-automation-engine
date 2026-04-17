@@ -25,7 +25,7 @@ export class CacheManager {
         }
       }
     } catch {
-      // ignore
+      // ignore corrupt cache
     }
   }
 

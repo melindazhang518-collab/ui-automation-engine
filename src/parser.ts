@@ -20,7 +20,7 @@ export class MarkdownParser {
       setup,
       steps,
       teardown,
-      rawMarkdown: markdown
+      rawMarkdown: markdown,
     };
   }
 
@@ -31,7 +31,7 @@ export class MarkdownParser {
     if (!match) return [];
     return match[1]
       .split('\n')
-      .map((line) => line.replace(/^[-*]\s+/, '').trim())
+      .map((line: string) => line.replace(/^[-*]\s+/, '').trim())
       .filter(Boolean);
   }
 
@@ -49,7 +49,7 @@ export class MarkdownParser {
         currentStep = {
           number: steps.length + 1,
           action: stepMatch[1].trim(),
-          details: []
+          details: [],
         };
       } else if (currentStep && line.includes('预期')) {
         currentStep.expectedResult = line.replace(/预期[结果：:]+/, '').trim();

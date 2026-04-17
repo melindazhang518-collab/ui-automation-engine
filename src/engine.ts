@@ -1,10 +1,11 @@
 import * as fs from 'fs';
 import * as path from 'path';
-import { TestCase, ExecutionResult } from './types';
+import { ExecutionResult } from './types';
 import { ClaudeExecutor } from './claude-executor';
 import { MarkdownParser } from './parser';
 import { CacheManager } from './cache';
 import { BrowserExecutor } from './browser-executor';
+import { TestConfig } from './config';
 
 export class UIAutomationEngine {
   private executor: ClaudeExecutor;
@@ -12,17 +13,17 @@ export class UIAutomationEngine {
   private cache: CacheManager;
   private browser: BrowserExecutor;
 
-  constructor(cacheDir: string) {
+  constructor(cacheDir: string, config: TestConfig) {
     this.executor = new ClaudeExecutor();
     this.parser = new MarkdownParser();
     this.cache = new CacheManager(cacheDir);
-    this.browser = new BrowserExecutor();
+    this.browser = new BrowserExecutor(config);
   }
 
   async run(filePath: string): Promise<ExecutionResult> {
     const startTime = Date.now();
     const markdown = fs.readFileSync(filePath, 'utf-8');
-    const testCase: TestCase = this.parser.parse(markdown);
+    const testCase = this.parser.parse(markdown);
 
     const cached = this.cache.get(testCase.id);
     if (cached) {
@@ -31,7 +32,7 @@ export class UIAutomationEngine {
         success: cached.success,
         message: cached.result,
         duration: Date.now() - startTime,
-        cachedHit: true
+        cachedHit: true,
       };
     }
 
@@ -45,7 +46,7 @@ export class UIAutomationEngine {
         success: analysis.success,
         result: analysis.message,
         timestamp: Date.now(),
-        executionTime: Date.now() - startTime
+        executionTime: Date.now() - startTime,
       });
 
       return {
@@ -53,7 +54,7 @@ export class UIAutomationEngine {
         success: analysis.success,
         message: analysis.message,
         duration: Date.now() - startTime,
-        cachedHit: false
+        cachedHit: false,
       };
     } catch (error) {
       return {
@@ -61,13 +62,13 @@ export class UIAutomationEngine {
         success: false,
         message: error instanceof Error ? error.message : 'Unknown error',
         duration: Date.now() - startTime,
-        cachedHit: false
+        cachedHit: false,
       };
     }
   }
 
   async runBatch(dirPath: string): Promise<ExecutionResult[]> {
-    const files = fs.readdirSync(dirPath).filter((f) => f.endsWith('.md'));
+    const files = fs.readdirSync(dirPath).filter((f: string) => f.endsWith('.md'));
     const results: ExecutionResult[] = [];
     for (const file of files) {
       const result = await this.run(path.join(dirPath, file));
