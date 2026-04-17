@@ -1,25 +1,71 @@
+import 'dotenv/config';
+import * as fs from 'fs';
+import * as path from 'path';
+import * as readline from 'readline';
+import { chromium } from 'playwright';
 import { UIAutomationEngine } from './engine';
+import { loadTestConfig } from './config';
 import { ExecutionResult } from './types';
+
+async function login(): Promise<void> {
+  const config = loadTestConfig();
+  const storageStateFullPath = path.resolve(process.cwd(), config.storageStatePath);
+
+  console.log(`\n🌐 正在打开浏览器，导航到: ${config.baseUrl}`);
+
+  const browser = await chromium.launch({ headless: false });
+  const context = await browser.newContext();
+  const page = await context.newPage();
+  await page.goto(config.baseUrl);
+
+  console.log('\n请在浏览器中完成登录，登录成功后按 Enter 键保存 Session...');
+
+  await new Promise<void>((resolve) => {
+    const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
+    rl.question('', () => {
+      rl.close();
+      resolve();
+    });
+  });
+
+  const dir = path.dirname(storageStateFullPath);
+  if (!fs.existsSync(dir)) {
+    fs.mkdirSync(dir, { recursive: true });
+  }
+
+  await context.storageState({ path: storageStateFullPath });
+  await browser.close();
+
+  console.log(`\n✅ Session 已保存到 ${config.storageStatePath}，后续执行用例时将自动复用\n`);
+}
 
 async function main() {
   const args = process.argv.slice(2);
+
+  if (args[0] === '--login') {
+    await login();
+    return;
+  }
 
   if (args.length === 0) {
     console.log(`
 🤖 UI Automation Engine
 
 使用方法:
-  npx ts-node src/index.ts <markdown-file-path>
-  npx ts-node src/index.ts --batch <markdown-directory>
+  npx ts-node src/index.ts --login                  # 手动登录，保存 Session
+  npx ts-node src/index.ts <markdown-file-path>     # 执行单条用例
+  npx ts-node src/index.ts --batch <markdown-directory>   # 批量执行用例
 
 例子:
+  npx ts-node src/index.ts --login
   npx ts-node src/index.ts ./examples/test-case.md
   npx ts-node src/index.ts --batch ./examples/
     `);
     return;
   }
 
-  const engine = new UIAutomationEngine('./cache');
+  const config = loadTestConfig();
+  const engine = new UIAutomationEngine('./cache', config);
 
   if (args[0] === '--batch' && args[1]) {
     const results = await engine.runBatch(args[1]);

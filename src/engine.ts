@@ -5,6 +5,7 @@ import { ClaudeExecutor } from './claude-executor';
 import { MarkdownParser } from './parser';
 import { CacheManager } from './cache';
 import { BrowserExecutor } from './browser-executor';
+import { TestConfig } from './config';
 
 export class UIAutomationEngine {
   private executor: ClaudeExecutor;
@@ -12,11 +13,11 @@ export class UIAutomationEngine {
   private cache: CacheManager;
   private browser: BrowserExecutor;
 
-  constructor(cacheDir: string) {
+  constructor(cacheDir: string, config: TestConfig) {
     this.executor = new ClaudeExecutor();
     this.parser = new MarkdownParser();
     this.cache = new CacheManager(cacheDir);
-    this.browser = new BrowserExecutor();
+    this.browser = new BrowserExecutor(config);
   }
 
   async run(filePath: string): Promise<ExecutionResult> {
