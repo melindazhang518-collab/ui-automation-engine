@@ -4,20 +4,20 @@ import { ExecutionResult } from './types';
 import { ClaudeExecutor } from './claude-executor';
 import { MarkdownParser } from './parser';
 import { CacheManager } from './cache';
-import { BrowserExecutor } from './browser-executor';
+import { StagehandExecutor } from './stagehand-executor';
 import { TestConfig } from './config';
 
 export class UIAutomationEngine {
   private executor: ClaudeExecutor;
   private parser: MarkdownParser;
   private cache: CacheManager;
-  private browser: BrowserExecutor;
+  private browser: StagehandExecutor;
 
   constructor(cacheDir: string, config: TestConfig) {
     this.executor = new ClaudeExecutor();
     this.parser = new MarkdownParser();
     this.cache = new CacheManager(cacheDir);
-    this.browser = new BrowserExecutor(config);
+    this.browser = new StagehandExecutor(config);
   }
 
   async run(filePath: string): Promise<ExecutionResult> {
