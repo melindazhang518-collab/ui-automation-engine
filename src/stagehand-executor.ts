@@ -53,10 +53,7 @@ export class StagehandExecutor {
         await page.goto(baseOrigin);
         await page.evaluate((entries: Array<{ name: string; value: string }>) => {
           for (const entry of entries) {
-            (globalThis as unknown as { localStorage: { setItem: (key: string, value: string) => void } }).localStorage.setItem(
-              entry.name,
-              entry.value,
-            );
+            (globalThis as any).localStorage.setItem(entry.name, entry.value);
           }
         }, matched.localStorage);
       }
