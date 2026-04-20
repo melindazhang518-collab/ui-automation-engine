@@ -25,3 +25,11 @@ npx ts-node src/index.ts --login
 ```bash
 npx ts-node src/index.ts ./examples/test-case.md
 ```
+
+## Stagehand Agent 模式
+
+Stagehand 模式是 AI 驱动的浏览器执行方式，执行阶段通过自然语言理解页面与操作目标，不再依赖固定 CSS selector。
+
+与原有机械执行模式相比，Stagehand 模式可以更好地适应 DOM 结构变化，降低因页面微调导致的用例失败。
+
+该模式已自动集成到当前执行引擎中，默认即可使用，无需额外配置。
